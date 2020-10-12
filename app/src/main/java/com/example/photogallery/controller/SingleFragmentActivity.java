@@ -1,4 +1,4 @@
-package com.example.photogallery;
+package com.example.photogallery.controller;
 
 import android.os.Bundle;
 
@@ -6,6 +6,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+
+import com.example.photogallery.R;
 
 public abstract class SingleFragmentActivity extends AppCompatActivity {
 
