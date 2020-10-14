@@ -3,15 +3,26 @@ package com.example.photogallery.network;
 import android.net.Uri;
 import android.util.Log;
 
+import com.example.photogallery.model.Gallery;
+import com.example.photogallery.model.GalleryItem;
+import com.google.gson.Gson;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FlickrFetcher {
     private static final String TAG = "FlickrFetcher";
+    private static final String API_KEY = "79b5c28546b0c0fd5a0bdc65ac9eab18";
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
         URL url = new URL(urlSpec);
@@ -40,5 +51,40 @@ public class FlickrFetcher {
     }
     public String getUrlString(String urlSpec) throws IOException {
         return new String(getUrlBytes(urlSpec));
+    }
+
+    public List<GalleryItem> fetchItems() throws IOException {
+        List<GalleryItem> galleryItems = new ArrayList<>();
+        String url = Uri.parse("https://www.flickr.com/services/rest/")
+                .buildUpon()
+                .appendQueryParameter("method", "flickr.photos.getPopular")
+                .appendQueryParameter("api_key", API_KEY)
+                .appendQueryParameter("format", "json")
+                .appendQueryParameter("nojsoncallback", "1")
+                .appendQueryParameter("extras", "url_s")
+                .appendQueryParameter("user_id", "34427466731@N01")
+                .build().toString();
+        String result = getUrlString(url);
+        try {
+            JSONObject jsonBody = new JSONObject(result);
+            JSONObject photosJsonObject = jsonBody.getJSONObject("photos");
+            Gson gson = new Gson();
+            Gallery gallery = gson.fromJson(photosJsonObject.toString(), Gallery.class);
+            galleryItems = gallery.getGalleryItems();
+
+//            JSONArray photoJsonArray = photosJsonObject.getJSONArray("photo");
+//            for (int i = 0; i < photoJsonArray.length(); i++){
+//                JSONObject photoJsonObject = photoJsonArray.getJSONObject(i);
+//                String id = photoJsonObject.getString("id");
+//                String caption = photoJsonObject.getString("title");
+//                String url_s = photoJsonObject.getString("url_s");
+//                Gson gson = new Gson();
+//                GalleryItem galleryItem = gson.fromJson(photoJsonObject.toString(), GalleryItem.class);
+//                galleryItems.add(galleryItem);
+//            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return galleryItems;
     }
 }
