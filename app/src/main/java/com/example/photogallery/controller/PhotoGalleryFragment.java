@@ -21,6 +21,7 @@ import com.example.photogallery.R;
 import com.example.photogallery.model.Gallery;
 import com.example.photogallery.model.GalleryItem;
 import com.example.photogallery.network.FlickrFetcher;
+import com.example.photogallery.prefs.QueryPreferences;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,18 +55,20 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         setHasOptionsMenu(true);
-        new PhotoTask().execute();
+        updateItem();
     }
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_photo_gallery, menu);
-        SearchView searchView = (SearchView) menu.findItem(R.id.menu_item_search);
+        MenuItem searchItem = menu.findItem(R.id.menu_item_search);
+        final SearchView searchView = (SearchView) searchItem.getActionView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                new PhotoTask().execute(query);
+                QueryPreferences.setStoredQuery(getContext(), query);
+                updateItem();
                 return false;
             }
 
@@ -74,6 +77,17 @@ public class PhotoGalleryFragment extends Fragment {
                 return false;
             }
         });
+
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchView.setQuery(QueryPreferences.getStoredQuery(getContext()), false);
+            }
+        });
+    }
+
+    private void updateItem() {
+        new PhotoTask().execute(QueryPreferences.getStoredQuery(getContext()));
     }
 
     @Override
@@ -83,7 +97,8 @@ public class PhotoGalleryFragment extends Fragment {
 
                 return true;
             case R.id.menu_item_clear:
-
+                QueryPreferences.setStoredQuery(getContext(), null);
+                updateItem();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -99,25 +114,25 @@ public class PhotoGalleryFragment extends Fragment {
         mLayoutManager =  new GridLayoutManager(getContext(), 3);
         mRecyclerView.setLayoutManager(mLayoutManager);
         setUpAdapter(mGalleryItems);
-        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if (dy > 0) {
-                    visibleItemCount = mLayoutManager.getChildCount();
-                    totalItemCount = mLayoutManager.getItemCount();
-                    pastVisiblesItems = mLayoutManager.findFirstVisibleItemPosition();
-                       if (!isLoading) {
-                           if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
-                               if (mCurrentPage < mPages) {
-                                   isLoading = true;
-                                   new PhotoTask().execute();
-                               }
-                           }
-
-                       }
-                }
-            }
-        });
+//        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+//            @Override
+//            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+//                if (dy > 0) {
+//                    visibleItemCount = mLayoutManager.getChildCount();
+//                    totalItemCount = mLayoutManager.getItemCount();
+//                    pastVisiblesItems = mLayoutManager.findFirstVisibleItemPosition();
+//                       if (!isLoading) {
+//                           if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
+//                               if (mCurrentPage < mPages) {
+//                                   isLoading = true;
+//                                   new PhotoTask().execute();
+//                               }
+//                           }
+//
+//                       }
+//                }
+//            }
+//        });
         return view;
     }
 

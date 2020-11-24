@@ -26,12 +26,13 @@ public class FlickrFetcher {
 
     private Uri endPoint = Uri.parse("https://www.flickr.com/services/rest/")
             .buildUpon()
-                .appendQueryParameter("method", "flickr.photos.getRecent")
-                .appendQueryParameter("api_key", API_KEY)
-                .appendQueryParameter("format", "json")
-                .appendQueryParameter("nojsoncallback", "1")
-                .appendQueryParameter("extras", "url_s")
-                .build();
+            .appendQueryParameter("method", "flickr.photos.getRecent")
+            .appendQueryParameter("api_key", API_KEY)
+            .appendQueryParameter("format", "json")
+            .appendQueryParameter("nojsoncallback", "1")
+            .appendQueryParameter("extras", "url_s")
+            .appendQueryParameter("user_id", "34427466731@N01")
+            .build();
 
     private enum FlickerMethods{
         popular,
