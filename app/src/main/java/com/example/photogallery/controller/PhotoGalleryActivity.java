@@ -5,10 +5,10 @@ import androidx.fragment.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 
-public class MainActivity extends SingleFragmentActivity {
+public class PhotoGalleryActivity extends SingleFragmentActivity {
 
     public static Intent newIntent(Context context){
-        Intent intent = new Intent(context, MainActivity.class);
+        Intent intent = new Intent(context, PhotoGalleryActivity.class);
         return intent;
     }
 

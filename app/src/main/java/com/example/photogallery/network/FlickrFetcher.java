@@ -7,7 +7,6 @@ import com.example.photogallery.model.Gallery;
 import com.example.photogallery.model.GalleryItem;
 import com.google.gson.Gson;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -22,21 +21,19 @@ import java.util.List;
 
 public class FlickrFetcher {
     private static final String TAG = "FlickrFetcher";
-    private static final String API_KEY = "1aa9bb82f337d3374b2ea53357cab169";
+    private static final String API_KEY = "5668e397fdea68ed41da1cd7503937a1";
 
     private Uri endPoint = Uri.parse("https://www.flickr.com/services/rest/")
             .buildUpon()
-            .appendQueryParameter("method", "flickr.photos.getRecent")
             .appendQueryParameter("api_key", API_KEY)
             .appendQueryParameter("format", "json")
             .appendQueryParameter("nojsoncallback", "1")
             .appendQueryParameter("extras", "url_s")
-            .appendQueryParameter("user_id", "34427466731@N01")
             .build();
 
     private enum FlickerMethods{
-        popular,
-        search
+        POPULAR,
+        SEARCH
     }
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
@@ -69,14 +66,6 @@ public class FlickrFetcher {
     }
 
     public List<GalleryItem> downloadGalleryItems(String url) throws IOException {
-//        String url = Uri.parse("https://www.flickr.com/services/rest/")
-//                .buildUpon()
-//                .appendQueryParameter("method", "flickr.photos.getRecent")
-//                .appendQueryParameter("api_key", API_KEY)
-//                .appendQueryParameter("format", "json")
-//                .appendQueryParameter("nojsoncallback", "1")
-//                .appendQueryParameter("extras", "url_s")
-//                .build().toString();
         String result = getUrlString(url);
         List<GalleryItem> galleryItems = new ArrayList<>();
         try {
@@ -92,25 +81,23 @@ public class FlickrFetcher {
     }
 
     public List<GalleryItem> fetchPopular() throws IOException {
-        String url = buildUrl(FlickerMethods.popular, null);
-        return downloadGalleryItems(url);
+        return downloadGalleryItems(buildUrl(FlickerMethods.POPULAR, null));
     }
 
     public List<GalleryItem> searchGalleryItems(String query) throws IOException {
-        String url = buildUrl(FlickerMethods.search, query);
-        return downloadGalleryItems(url);
-
+        return downloadGalleryItems(buildUrl(FlickerMethods.SEARCH, query));
     }
 
     private String buildUrl(FlickerMethods methods, String query){
         Uri.Builder builder = endPoint.buildUpon();
         switch (methods){
-            case popular:
-                builder.appendQueryParameter("method", "flickr.photos.getPopular");
+            case POPULAR:
+                builder.appendQueryParameter("method", "flickr.photos.getRecent");
                 break;
-            case search:
+            case SEARCH:
                 builder.appendQueryParameter("method", "flickr.photos.search").
                         appendQueryParameter("text", query);
+                break;
             default:
                 return null;
         }

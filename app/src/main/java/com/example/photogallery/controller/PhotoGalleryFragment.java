@@ -1,6 +1,8 @@
 package com.example.photogallery.controller;
 
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -32,12 +34,7 @@ public class PhotoGalleryFragment extends Fragment {
     private RecyclerView mRecyclerView;
     private PhotoAdapter mPhotoAdapter;
     private List<GalleryItem> mGalleryItems = new ArrayList<>();
-    private int mCurrentPage = 0;
-    private int mPages;
     private GridLayoutManager mLayoutManager;
-    private int pastVisiblesItems, visibleItemCount, totalItemCount;
-    private boolean isLoading = false;
-    private PhotoTask mPhotoTask = new PhotoTask();
 
     public PhotoGalleryFragment() {
         // Required empty public constructor
@@ -56,53 +53,8 @@ public class PhotoGalleryFragment extends Fragment {
         setRetainInstance(true);
         setHasOptionsMenu(true);
         updateItem();
-    }
-
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.fragment_photo_gallery, menu);
-        MenuItem searchItem = menu.findItem(R.id.menu_item_search);
-        final SearchView searchView = (SearchView) searchItem.getActionView();
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                QueryPreferences.setStoredQuery(getContext(), query);
-                updateItem();
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                return false;
-            }
-        });
-
-        searchView.setOnSearchClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                searchView.setQuery(QueryPreferences.getStoredQuery(getContext()), false);
-            }
-        });
-    }
-
-    private void updateItem() {
-        new PhotoTask().execute(QueryPreferences.getStoredQuery(getContext()));
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.menu_item_search:
-
-                return true;
-            case R.id.menu_item_clear:
-                QueryPreferences.setStoredQuery(getContext(), null);
-                updateItem();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
+        Intent intent = PollService.newIntent(getContext());
+        getActivity().startService(intent);
     }
 
     @Override
@@ -114,25 +66,6 @@ public class PhotoGalleryFragment extends Fragment {
         mLayoutManager =  new GridLayoutManager(getContext(), 3);
         mRecyclerView.setLayoutManager(mLayoutManager);
         setUpAdapter(mGalleryItems);
-//        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-//                if (dy > 0) {
-//                    visibleItemCount = mLayoutManager.getChildCount();
-//                    totalItemCount = mLayoutManager.getItemCount();
-//                    pastVisiblesItems = mLayoutManager.findFirstVisibleItemPosition();
-//                       if (!isLoading) {
-//                           if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
-//                               if (mCurrentPage < mPages) {
-//                                   isLoading = true;
-//                                   new PhotoTask().execute();
-//                               }
-//                           }
-//
-//                       }
-//                }
-//            }
-//        });
         return view;
     }
 
@@ -144,6 +77,72 @@ public class PhotoGalleryFragment extends Fragment {
             }
             mPhotoAdapter.notifyDataSetChanged();
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_photo_gallery, menu);
+        MenuItem togglePollingItem = menu.findItem(R.id.menu_item_toggle_polling);
+        MenuItem searchItem = menu.findItem(R.id.menu_item_search);
+        final SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                QueryPreferences.setStoredQuery(getContext(), query);
+                updateItem();
+                return false;
+            }
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+        searchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchView.setQuery(QueryPreferences.getStoredQuery(getContext()), false);
+            }
+        });
+        if (isScheduleOrServiceOn())
+            togglePollingItem.setTitle(R.string.stop);
+        else
+            togglePollingItem.setTitle(R.string.start);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.menu_item_search:
+                return true;
+            case R.id.menu_item_clear:
+                QueryPreferences.setStoredQuery(getContext(), null);
+                updateItem();
+                return true;
+            case R.id.menu_item_toggle_polling:
+                setScheduleOrAlarm(isScheduleOrServiceOn());
+                getActivity().invalidateOptionsMenu();
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void updateItem() {
+        new PhotoTask().execute(QueryPreferences.getStoredQuery(getContext()));
+    }
+
+    private void setScheduleOrAlarm(boolean isOn){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            PollJobService.schedulerService(getContext(), isOn);
+        else
+            PollService.isAlarmOn(getContext());
+    }
+
+    private boolean isScheduleOrServiceOn(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            return PollJobService.isScheduled(getContext());
+        else
+            return PollService.isAlarmOn(getContext());
     }
 
     private void findViews(View view) {
@@ -176,12 +175,8 @@ public class PhotoGalleryFragment extends Fragment {
 
         @Override
         protected void onPostExecute(List<GalleryItem> galleryItems) {
-//            isLoading = false;
-//            mCurrentPage ++;
-//            super.onPostExecute(galleryItems);
-//            mGalleryItems.addAll(galleryItems);
-//            Toast.makeText(getContext(),String.valueOf(mGalleryItems.size()), Toast.LENGTH_SHORT).show();
-//            setUpAdapter(mGalleryItems);
+            mGalleryItems.addAll(galleryItems);
+            setUpAdapter(mGalleryItems);
         }
     }
 }

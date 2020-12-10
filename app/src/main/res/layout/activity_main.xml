@@ -4,6 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".controller.MainActivity"
+    tools:context=".controller.PhotoGalleryActivity"
     android:id="@+id/activity_main">
 </androidx.constraintlayout.widget.ConstraintLayout>
