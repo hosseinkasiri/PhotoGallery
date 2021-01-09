@@ -2,9 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.photogallery">
 
+    <permission android:name="com.example.photogallery.PRIVATE"
+        android:protectionLevel="signature"/>
+
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
@@ -15,15 +17,30 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <service
-            android:name=".controller.PollJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
+        <receiver
+            android:name=".controller.NotificationReceiver"
             android:enabled="true"
             android:exported="true">
+            <intent-filter android:priority="-999">
+                <action android:name="com.example.photogallery.utils_SHOW_NOTIFICATION" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".controller.PollJobService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE">
         </service>
         <service
             android:name=".controller.PollService"
             android:exported="false" />
+
+        <receiver android:name=".controller.BootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
 
         <activity android:name=".controller.PhotoGalleryActivity">
             <intent-filter>

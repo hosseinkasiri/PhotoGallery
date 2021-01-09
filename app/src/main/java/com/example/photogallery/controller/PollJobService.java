@@ -7,8 +7,9 @@ import android.app.job.JobService;
 import android.content.ComponentName;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Build;
 
-import com.example.photogallery.controller.utils.Services;
+import com.example.photogallery.utils.Services;
 
 import java.util.concurrent.TimeUnit;
 
@@ -64,6 +65,9 @@ public class PollJobService extends JobService {
         protected Void doInBackground(JobParameters... jobParameters) {
             Services.pollServerAndSendNotification(PollJobService.this, TAG);
             jobFinished(jobParameters[0], false);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+                schedulerService(PollJobService.this, true);
+            }
             return null;
         }
     }

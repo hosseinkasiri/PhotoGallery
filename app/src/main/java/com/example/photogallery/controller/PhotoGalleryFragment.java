@@ -29,11 +29,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PhotoGalleryFragment extends Fragment {
+public class PhotoGalleryFragment extends VisibleFragment {
 
     private RecyclerView mRecyclerView;
     private PhotoAdapter mPhotoAdapter;
-    private List<GalleryItem> mGalleryItems = new ArrayList<>();
+    private List<GalleryItem> mGalleryItems;
     private GridLayoutManager mLayoutManager;
 
     public PhotoGalleryFragment() {
@@ -50,6 +50,7 @@ public class PhotoGalleryFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mGalleryItems = new ArrayList<>();
         setRetainInstance(true);
         setHasOptionsMenu(true);
         updateItem();
@@ -122,6 +123,7 @@ public class PhotoGalleryFragment extends Fragment {
             case R.id.menu_item_toggle_polling:
                 setScheduleOrAlarm(isScheduleOrServiceOn());
                 getActivity().invalidateOptionsMenu();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

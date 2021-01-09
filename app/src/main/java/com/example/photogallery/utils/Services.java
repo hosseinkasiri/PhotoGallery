@@ -1,11 +1,13 @@
-package com.example.photogallery.controller.utils;
+package com.example.photogallery.utils;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import androidx.core.app.NavUtils;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -20,6 +22,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Services {
+    private static final String ACTION_SHOW_NOTIFICATION = "com.example.photogallery.utils_SHOW_NOTIFICATION";
+    private static final String EXTRA_REQUEST_CODE = "request_code";
+    private static final String EXTRA_NOTIFICATION = "notification";
+    private static final String PERM_PRIVATE = "private static final String PERM_PRIVATE";
+
+    public static String getPermPrivate() {
+        return PERM_PRIVATE;
+    }
+
+    public static String getActionShowNotification() {
+        return ACTION_SHOW_NOTIFICATION;
+    }
+
+    public static String getExtraRequestCode() {
+        return EXTRA_REQUEST_CODE;
+    }
+
+    public static String getExtraNotification() {
+        return EXTRA_NOTIFICATION;
+    }
+
     public static void pollServerAndSendNotification(Context context, String TAG){
         String query = QueryPreferences.getStoredQuery(context);
         String lastId = QueryPreferences.getLastId(context);
@@ -49,8 +72,17 @@ public class Services {
                     .setContentIntent(pi)
                     .setAutoCancel(true)
                     .build();
-            NotificationManagerCompat nmc = NotificationManagerCompat.from(context);
-            nmc.notify(0, notification);
+            Intent intent = new Intent(ACTION_SHOW_NOTIFICATION);
+            intent.putExtra(EXTRA_REQUEST_CODE, 0);
+            intent.putExtra(EXTRA_NOTIFICATION,notification);
+//            context.sendBroadcast(intent, PERM_PRIVATE);
+            context.sendOrderedBroadcast(intent,
+                    PERM_PRIVATE,
+                    null,
+                    null,
+                    Activity.RESULT_OK,
+                    null,
+                    null);
         }
         QueryPreferences.setLastId(context, galleryItems.get(0).getId());
     }
